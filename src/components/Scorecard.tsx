@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { BallByBall } from "./BallByBall";
 import { Button } from "@/components/ui/button";
+import { deliveriesAPI } from "@/services/api";
 
 interface ScorecardProps {
   matchId: number;
@@ -15,7 +16,7 @@ interface Delivery {
   batting_team: string;
   bowling_team: string;
   innings: number;
-  over: number;
+  over_no: number;
   striker: string;
   bowler: string;
   runs_of_bat: number;
@@ -33,67 +34,17 @@ export const Scorecard = ({ matchId }: ScorecardProps) => {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
   const [showBallByBall, setShowBallByBall] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDeliveries = async () => {
       try {
-        const response = await fetch('/data/deliveries.csv');
-        const text = await response.text();
-        const rows = text.split('\n').slice(1);
-        
-        // Helper function to parse CSV row with quoted fields
-        const parseCSVRow = (row: string): string[] => {
-          const values: string[] = [];
-          let currentValue = '';
-          let insideQuotes = false;
-          
-          for (let i = 0; i < row.length; i++) {
-            const char = row[i];
-            
-            if (char === '"') {
-              insideQuotes = !insideQuotes;
-            } else if (char === ',' && !insideQuotes) {
-              values.push(currentValue);
-              currentValue = '';
-            } else {
-              currentValue += char;
-            }
-          }
-          values.push(currentValue);
-          return values;
-        };
-        
-        const parsedDeliveries = rows
-          .filter(row => row.trim())
-          .map(row => {
-            const values = parseCSVRow(row);
-            return {
-              match_no: parseInt(values[0]),
-              date: values[1],
-              stage: values[2],
-              venue: values[3],
-              batting_team: values[4],
-              bowling_team: values[5],
-              innings: parseInt(values[6]),
-              over: parseFloat(values[7]),
-              striker: values[8],
-              bowler: values[9],
-              runs_of_bat: parseInt(values[10]) || 0,
-              extras: parseInt(values[11]) || 0,
-              wide: parseInt(values[12]) || 0,
-              legbyes: parseInt(values[13]) || 0,
-              byes: parseInt(values[14]) || 0,
-              noballs: parseInt(values[15]) || 0,
-              wicket_type: values[16] || '',
-              player_dismissed: values[17] || '',
-              fielder: values[18] || ''
-            };
-          })
-          .filter(d => d.match_no === matchId);
-        
-        setDeliveries(parsedDeliveries);
+        const data = await deliveriesAPI.getByMatch(matchId);
+        setDeliveries(data);
+        setError(null);
       } catch (error) {
         console.error('Error loading deliveries:', error);
+        setError('Failed to load delivery data');
       } finally {
         setLoading(false);
       }
@@ -106,6 +57,14 @@ export const Scorecard = ({ matchId }: ScorecardProps) => {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-4 text-destructive">
+        {error}
       </div>
     );
   }

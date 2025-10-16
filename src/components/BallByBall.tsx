@@ -8,7 +8,7 @@ interface Delivery {
   batting_team: string;
   bowling_team: string;
   innings: number;
-  over: number;
+  over_no: number;
   striker: string;
   bowler: string;
   runs_of_bat: number;
@@ -41,7 +41,7 @@ export const BallByBall = ({ deliveries }: BallByBallProps) => {
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-semibold text-muted-foreground">
-              Over {delivery.over}
+              Over {delivery.over_no}
             </span>
             <div className="flex gap-2">
               {delivery.runs_of_bat === 6 && (

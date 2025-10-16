@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { MatchCard } from "./MatchCard";
 import { Loader2 } from "lucide-react";
+import { matchesAPI } from "@/services/api";
 
 export interface Match {
   match_id: number;
@@ -30,69 +31,17 @@ export interface Match {
 export const MatchList = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMatches = async () => {
       try {
-        const response = await fetch('/data/matches.csv');
-        const text = await response.text();
-        const rows = text.split('\n').slice(1);
-        
-        // Helper function to parse CSV row with quoted fields
-        const parseCSVRow = (row: string): string[] => {
-          const values: string[] = [];
-          let currentValue = '';
-          let insideQuotes = false;
-          
-          for (let i = 0; i < row.length; i++) {
-            const char = row[i];
-            
-            if (char === '"') {
-              insideQuotes = !insideQuotes;
-            } else if (char === ',' && !insideQuotes) {
-              values.push(currentValue);
-              currentValue = '';
-            } else {
-              currentValue += char;
-            }
-          }
-          values.push(currentValue);
-          return values;
-        };
-        
-        const parsedMatches = rows
-          .filter(row => row.trim())
-          .map(row => {
-            const values = parseCSVRow(row);
-            return {
-              match_id: parseInt(values[0]),
-              date: values[1],
-              venue: values[2],
-              team1: values[3],
-              team2: values[4],
-              stage: values[5],
-              toss_winner: values[6],
-              toss_decision: values[7],
-              first_ings_score: parseInt(values[8]) || 0,
-              first_ings_wkts: parseInt(values[9]) || 0,
-              second_ings_score: parseInt(values[10]) || 0,
-              second_ings_wkts: parseInt(values[11]) || 0,
-              match_result: values[12],
-              match_winner: values[13],
-              wb_runs: values[14],
-              wb_wickets: values[15],
-              balls_left: parseInt(values[16]) || 0,
-              player_of_the_match: values[17],
-              top_scorer: values[18],
-              highscore: parseInt(values[19]) || 0,
-              best_bowling: values[20],
-              best_bowling_figure: values[21]
-            };
-          });
-        
-        setMatches(parsedMatches);
+        const data = await matchesAPI.getAll();
+        setMatches(data);
+        setError(null);
       } catch (error) {
         console.error('Error loading matches:', error);
+        setError('Failed to load matches. Please ensure the backend server is running.');
       } finally {
         setLoading(false);
       }
@@ -105,6 +54,17 @@ export const MatchList = () => {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <p className="text-destructive text-lg font-semibold">{error}</p>
+        <p className="text-muted-foreground text-sm">
+          Run the backend server: <code className="bg-secondary px-2 py-1 rounded">cd backend && npm start</code>
+        </p>
       </div>
     );
   }
