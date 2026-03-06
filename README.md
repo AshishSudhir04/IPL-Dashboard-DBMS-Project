@@ -21,12 +21,6 @@ This is a Database Management System (DBMS) project that demonstrates:
 
 There are several ways of editing your application.
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/b62911e3-2276-4d0f-b2b1-f0a74be3fc63) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
 **Use your preferred IDE**
 
 If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
